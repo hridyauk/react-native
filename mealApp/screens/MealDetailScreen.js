@@ -1,22 +1,30 @@
 import { useRoute } from "@react-navigation/native";
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
 import { MEALS } from "../data/sample-data";
-import { useLayoutEffect } from "react";
+import { useContext, useLayoutEffect } from "react";
 import MealDetails from "../components/MealDetails";
 import SubTitle from "../components/MealDetail/SubTitle";
 import List from "../components/MealDetail/List";
 import IconButton from "../components/IconButton";
+import { FavoritesContext } from "../store/context/favorites-context";
 
 function MealDetailScreen({ navigation }) {
+  const favoriteMealsCtx = useContext(FavoritesContext);
+
   const route = useRoute();
-
   const mealId = route.params.mealId;
-
   const meal = MEALS.find((m) => m.id === mealId);
 
-  function headerButtonHandler() {
-    console.log("button pressed");
+  const mealIsFav = favoriteMealsCtx.ids.includes(mealId);
+
+  function changeFavStatusHandler() {
+    if (mealIsFav) {
+      favoriteMealsCtx.removeFavorite(mealId);
+    } else {
+      favoriteMealsCtx.addFavorite(mealId);
+    }
   }
+
   useLayoutEffect(() => {
     const mealTitle = MEALS.find((meal) => meal.id === mealId).title;
 
@@ -24,11 +32,15 @@ function MealDetailScreen({ navigation }) {
       title: mealTitle,
       headerRight: () => {
         return (
-          <IconButton icon="star" color="white" onPress={headerButtonHandler} />
+          <IconButton
+            icon={mealIsFav ? "star" : "star-outline"}
+            color="white"
+            onPress={changeFavStatusHandler}
+          />
         );
       },
     });
-  }, [mealId, navigation, headerButtonHandler]);
+  }, [mealId, navigation, changeFavStatusHandler]);
 
   return (
     <ScrollView style={styles.rootContainer}>
